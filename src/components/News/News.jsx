@@ -2,7 +2,7 @@ import React from 'react';
 import s from './News.module.css';
 
 
-const Music = (props) => {
+const News = (props) => {
     return (
         <div >
             News
@@ -11,4 +11,4 @@ const Music = (props) => {
 }
 
 
-export default Music;
+export default News;
