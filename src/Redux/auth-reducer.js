@@ -1,6 +1,7 @@
 import {authAPI} from "../api/api";
+import {stopSubmit} from "redux-form"
 
-const SET_AUTH_USER_DATA = 'SET-AUTH-USER-DATA';
+const SET_AUTH_USER_DATA = 'auth/SET-AUTH-USER-DATA';
 
 let initialState = {
     id: null,
@@ -15,24 +16,40 @@ const authReducer = (state = initialState, action) => {
         case SET_AUTH_USER_DATA:
             return {
                 ...state,
-                ...action.user,
-                isAuth: true
+                ...action.payload
             };
         default: return state;
     }
 }
 
-export const setAuthUserData = (userId, email, login) => ({ type: SET_AUTH_USER_DATA, user:{
-        userId, email, login
+export const setAuthUserData = (userId, email, login, isAuth) => ({ type: SET_AUTH_USER_DATA, payload:{
+        userId, email, login, isAuth
     }} );
 
-export const getAuthUserData = () => (dispatch) => {
-    authAPI.me().then(response => {
+export const getAuthUserData = () => async (dispatch) => {
+    const response = await authAPI.me();
         if(response.data.resultCode === 0){
             let { id, email, login } = response.data.data;
-            dispatch(setAuthUserData(id, email, login));
-        }
-    });
+            dispatch(setAuthUserData(id, email, login, true));
+        };
+}
+
+export const login = (email, password, rememberMe) => async (dispatch) => {
+    const response = await authAPI.login(email, password, rememberMe);
+        if(response.data.resultCode === 0){
+           dispatch(getAuthUserData())
+        } else {
+            let meggage = response.data.messages.length > 0 ?
+                response.data.messages[0] : "Some error"
+            dispatch(stopSubmit("login", {_error: meggage}));
+        };
+}
+
+export const logout = () => async (dispatch) => {
+    const response = await authAPI.logout();
+        if(response.data.resultCode === 0){
+            dispatch(setAuthUserData(null, null, null, false));
+        };
 }
 
 export default authReducer;

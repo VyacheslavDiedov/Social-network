@@ -4,14 +4,8 @@ import {NavLink} from "react-router-dom";
 import Pagination from "../../common/Pagination/Pagination";
 
 
-let Users = ({currentPage, onPageCurrent, totalUsersCount, pageSize, users, ...props}) => {
+let User = ({user, followingInProgress, unfollow, follow}) => {
     return <div>
-        <Pagination
-            currentPage = {currentPage}   onPageCurrent = {onPageCurrent}
-            totalUsersCount = {totalUsersCount}   pageSize = {pageSize}
-        />
-        {
-            users.map(user => <div key={user.id}>
                     <span>
                         <div>
                             <NavLink to={'/profile/' + user.id}>
@@ -23,10 +17,10 @@ let Users = ({currentPage, onPageCurrent, totalUsersCount, pageSize, users, ...p
                         </div>
                         <div>{user.id}
                             {user.followed ?
-                                <button disabled={props.followingInProgress.some(id => id === user.id)}
-                                        onClick={() => {props.unfollow(user.id);}}>unfollow</button> :
-                                <button disabled={props.followingInProgress.some(id => id === user.id)}
-                                        onClick={() => {props.follow(user.id)}}>follow</button>}
+                                <button disabled={followingInProgress.some(id => id === user.id)}
+                                        onClick={() => {unfollow(user.id);}}>unfollow</button> :
+                                <button disabled={followingInProgress.some(id => id === user.id)}
+                                        onClick={() => {follow(user.id)}}>follow</button>}
                         </div>
                     </span>
                 <span>
@@ -39,10 +33,7 @@ let Users = ({currentPage, onPageCurrent, totalUsersCount, pageSize, users, ...p
                             <div>{"user.location.country"}</div>
                         </span>
                 </span>
-            </div>)
-        }
-    </div>
-
+            </div>
 }
 
-export default Users;
+export default User;
