@@ -3,76 +3,45 @@ import s from './ProfileInfo.module.css';
 import Preloader from "../../../common/Preloader/Preloader";
 import ProfileStatus from "./ProfileStatus";
 import ProfileStatusWithHook from "./ProfileStatusWithHook";
-
-
-const ProfileInfo = ({profile, status, updateStatus, isOwner, savePhoto }) => {
-    let [editMode, setEditMode] = useState(false);
-
-
-    if (!profile){
-        return <Preloader/>
-    }
-    const onMainPhotoSelected = (e) => {
-        if(e.target.files.length){
-            savePhoto(e.target.files[0]);
-        }
-    }
-
-    return (
-        <div>
-            <div className={s.descriptionBlock}>
-                <img src={profile.photos.large ||
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSQjB2JCZDGsuXMXCVMSj6JYtFjDlPkpPEGekYlmcXUVHDw9g-7&usqp=CAU"}
-                     className={s.mainPhoto} alt=""/>
-                {isOwner && <div><input type={'file'} onChange={onMainPhotoSelected}/></div>}
-                {editMode ? <ProfileDataForm profile={profile}/> :
-                    <ProfileData profile={profile} isOwner = {isOwner} goToEditMode = {() => setEditMode(true)}/>}
+import {Form, reduxForm} from "redux-form";
+import {createField, Input, Textarea} from "../../../common/FormControls/FormControls";
+import Contact from "./ProfileStatus";
+import stale from "../../../common/FormControls/FormControls.module.css";
 
 
 
-                <ProfileStatusWithHook status = {status}
-                                updateStatus = {updateStatus}/>
-            </div>
-        </div>
-    )
-}
-
-const ProfileData = ({profile, isOwner, goToEditMode}) => {
-    return <div>
-        {isOwner && <div>
-            <button onClick={goToEditMode}>
-        edit
-        </button>
+const ProfileDataForm = ({ profile, handleSubmit, error}) => {
+    return <Form onSubmit={ handleSubmit}>
+            <button >
+                Save
+            </button>
+        {error && <div className={stale.formControlSummaryError}>
+            {error}
         </div>}
         <div>
-            <b>Full name</b>: {profile.fullName}
+            <b>Full name</b>: {createField("Full name", "fullName", [], Input)}
         </div>
         <div>
-            <b>Looking for a job</b>: {profile.lookingForAJob ? "yas" : "no"}
+            <b>Looking for a job</b>:
+            {createField("", "lookingForAJob", [], Input, {type:"checkbox"})}
         </div>
-        {profile.lookingForAJob && <div>
-            <b>My professional skills</b>: {profile.lookingForAJobDescription}
-        </div>}
+            <b>My professional skills</b>:
+        {createField("My professional skills", "lookingForAJobDescription", [], Textarea)}
         <div>
-            <b>About me</b>: {profile.aboutMe}
+            <b>About me</b>:
+            {createField("About me", "aboutMe", [], Textarea)}
         </div>
         <div>
             <b>Contacts</b>: {Object.keys(profile.contacts).map(key => {
-            return <Contact contactTitle={key} contactValue={profile.contacts[key]}/>
+            return <div className={s.contact}>
+                <b>{key}:  {createField(key, "contacts." + key, [], Input)}</b>
+            </div>
         })
         }
         </div>
-    </div>
+    </Form>
 }
 
-const ProfileDataForm = ({profile}) => {
-    return <div>
-        Form
-    </div>
-}
+const ProfileDataFormReduxForm = reduxForm({form: 'edit-profile'})(ProfileDataForm);
 
-const Contact = ({contactTitle, contactValue}) => {
-    return <div className={s.contact}><b>{contactTitle}</b>: {contactValue}</div>
-}
-
-export default ProfileInfo;
+export default ProfileDataFormReduxForm;

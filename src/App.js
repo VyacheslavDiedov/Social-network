@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import Navbar from './components/Navbar/Navbar';
-import {withRouter, Route} from "react-router-dom";
+import {withRouter, Route, Switch, Redirect} from "react-router-dom";
 import News from "./components/News/News";
 import Music from "./components/Music/Music";
 import Setting from "./components/Setting/Setting";
@@ -13,6 +13,7 @@ import {compose} from 'redux';
 import {initializeApp} from "./Redux/app-reducer";
 import Preloader from "./common/Preloader/Preloader";
 import {withSuspense} from "./hoc/withSuspense";
+import NotFound from "./components/Errors/Not-found";
 
 //import ProfileContainer from "./components/Profile/ProfileContainer";
 //import DialogsContainer from "./components/Dialogs/DialogsContainer";
@@ -21,11 +22,19 @@ const ProfileContainer = React.lazy(() => import('./components/Profile/ProfileCo
 
 
 class App extends React.Component {
+    catchAllUnhandledErrors = (reason, promise) => {
+        alert("Some error occurred");
+    }
     componentDidMount() {
         this.props.initializeApp();
+        window.addEventListener("unhandledrejection", this.catchAllUnhandledErrors)
     }
+    componentWillUnmount() {
+        window.removeEventListener("unhandledrejection", this.catchAllUnhandledErrors)
+    }
+
     render() {
-        if(!this.props.initialize){
+        if (!this.props.initialize) {
             return <Preloader/>
         }
 
@@ -34,18 +43,22 @@ class App extends React.Component {
                 <HeaderContainer/>
                 <Navbar/>
                 <div className='app-wrapper-content'>
-                    <Route path="/dialogs" render={withSuspense(DialogsContainer)
-                    }/>
-                    <Route path="/profile/:userId?" render={() => {
-                        return <React.Suspense fallback={<div>Завантаження...</div>}>
+                    <Switch>
+                        <Route exact path="/" render={() => <Redirect to={"/profile"}/>}/>
+                        <Route path="/dialogs" render={withSuspense(DialogsContainer)
+                        }/>
+                        <Route path="/profile/:userId?" render={() => {
+                            return <React.Suspense fallback={<div>Завантаження...</div>}>
                                 <ProfileContainer/>
-                        </React.Suspense>
-                    }}/>
-                    <Route path="/news" render={() => <News/>}/>
-                    <Route path="/music" render={() => <Music/>}/>
-                    <Route path="/setting" render={() => <Setting/>}/>
-                    <Route path="/users" render={() => <UsersContainer/>}/>
-                    <Route path="/login" render={() => <Login/>}/>
+                            </React.Suspense>
+                        }}/>
+                        <Route path="/news" render={() => <News/>}/>
+                        <Route path="/music" render={() => <Music/>}/>
+                        <Route path="/setting" render={() => <Setting/>}/>
+                        <Route path="/users" render={() => <UsersContainer/>}/>
+                        <Route path="/login" render={() => <Login/>}/>
+                        <Route path="*" render={() => <NotFound/>}/>
+                    </Switch>
                 </div>
             </div>
         )

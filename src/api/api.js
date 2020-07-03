@@ -37,6 +37,18 @@ export const profileAPI =
         return axiosInstance.put(`profile/status/`, {
             status: status
         });
+    } ,
+    savePhoto(photoFile){
+        const formData = new FormData();
+        formData.append("image", photoFile);
+        return axiosInstance.put(`profile/photo/`, formData, {
+            headers:{
+                "Content-Type": "multipart/form-data"
+            }
+        });
+    },
+    saveProfile(profile){
+        return axiosInstance.put(`profile/`, profile);
     }
 }
 
@@ -45,10 +57,17 @@ export const authAPI =
     me(){
         return axiosInstance.get(`auth/me`);
     },
-    login(email, password, rememberMe = false){
-        return axiosInstance.post(`auth/login`, {email, password, rememberMe});
+    login(email, password, rememberMe = false, captcha = null){
+        return axiosInstance.post(`auth/login`, {email, password, rememberMe, captcha});
     },
     logout(){
         return axiosInstance.delete(`auth/login`);
+    }
+}
+
+export const securityAPI =
+{
+    getCaptchaUrl(){
+        return axiosInstance.get(`security/get-captcha-url`);
     }
 }

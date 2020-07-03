@@ -1,16 +1,18 @@
 import {profileAPI, usersAPI} from "../api/api";
+import {stopSubmit} from "redux-form";
 
 const ADD_POST = 'ADD-POST';
 const SET_USERS_PROFILE = 'SET-USERS-PROFILE';
 const SET_STATUS = 'SET-STATUS';
 const DELETE_POST = 'DELETE-POST';
+const SAVE_PHOTO_SUCCESS = 'SAVE-PHOTO-SUCCESS';
 
 let initialState = {
     posts: [
         {id: 1, message: 'Hi, how are you?', likesCount: 12},
         {id: 2, message: 'It\'s my first post', likesCount: 11},
-        {id: 2, message: 'Second', likesCount: 111},
-        {id: 2, message: 'Third', likesCount: 1231}
+        {id: 3, message: 'Second', likesCount: 111},
+        {id: 4, message: 'Third', likesCount: 1231}
     ],
     profile: null,
     status: ""
@@ -49,6 +51,12 @@ const profileReducer = (state = initialState, action) => {
                 posts: state.posts.filter(post => post.id !== action.idPost)
             };
         }
+        case SAVE_PHOTO_SUCCESS : {
+            return {
+                ...state,
+                profile: {...state.profile, photos: action.photos}
+            };
+        }
         default: return state;
     }
 }
@@ -57,6 +65,7 @@ export const addPostActionCreator = (newPostText) => ({ type: ADD_POST, newPostT
 export const setUsersProfile = (profile) => ({type: SET_USERS_PROFILE, profile});
 export const setStatus = (status) => ({type: SET_STATUS, status});
 export const deletePost = (idPost) => ({type: DELETE_POST, idPost});
+export const savePhotoSuccess = (photos) => ({type: SAVE_PHOTO_SUCCESS, photos});
 
 //thunk
 export const getUsersProfile = (userId) => async (dispatch) => {
@@ -70,9 +79,32 @@ export const getStatus = (userId) => async (dispatch) => {
 };
 
 export const updateStatus = (status) => async (dispatch) => {
-    const response = await profileAPI.updateStatus(status);
+    try {
+        const response = await profileAPI.updateStatus(status);
         if(response.data.resultCode === 0) {
             dispatch(setStatus(status));
+        };
+    } catch (error) {
+        //do something
+    }
+    
+};
+
+export const savePhoto = (file) => async (dispatch) => {
+    const response = await profileAPI.savePhoto(file);
+        if(response.data.resultCode === 0) {dispatch(savePhotoSuccess(response.data.data.photos));
+        };
+};
+
+export const saveProfile = (profile) => async (dispatch, getState) => {
+    const userId = getState().auth.userId;
+    const response = await profileAPI.saveProfile(profile);
+        if(response.data.resultCode === 0) {
+            dispatch(getUsersProfile(userId));
+        }else {
+            dispatch(stopSubmit("edit-profile", {_error: response.data.messages[0]}));
+            return Promise.reject(response.data.messages[0]);
+            //dispatch(stopSubmit("edit-profile", {"contacts": {"facebook": response.data.messages[0]}}));
         };
 };
 
